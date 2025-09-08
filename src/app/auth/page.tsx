@@ -21,7 +21,9 @@ export default function AuthPage() {
     }
   }, [loading, user]);
   async function loginWith(provider: 'google' | 'github') {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    // Use environment variable for production, fallback to window.location.origin
+    const origin = process.env.NEXT_PUBLIC_APPWRITE_SITE_URL || 
+                   (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
     const success = `${origin}/auth/callback?next=/dashboard`;
     const failure = `${origin}/`;
     const mapped = provider === 'google' ? OAuthProvider.Google : OAuthProvider.Github;
