@@ -8,15 +8,10 @@ export default function OAuthCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
-
-    const handleAuth = async () => {
-      try {
-        const u = await account.get();
+    account.get()
+      .then(async (u) => {
         setStatus('success');
         toast.success('Signed in successfully');
-        
         try {
           // Derive avatar from provider
           let avatarUrl: string | undefined;
@@ -39,30 +34,20 @@ export default function OAuthCallback() {
           await fetch('/api/users/upsert', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              userId: u.$id, 
-              name: u.name, 
-              email: u.email, 
-              avatarUrl: avatarUrl || (u as any)?.prefs?.avatar || '', 
-              raw: u 
-            }),
+            body: JSON.stringify({ userId: u.$id, name: u.name, email: u.email, avatarUrl: avatarUrl || (u as any)?.prefs?.avatar || '', raw: u }),
           });
-        } catch (error) {
-          console.warn('Failed to update user profile:', error);
-        }
-      } catch (error) {
+        } catch {}
+      })
+      .catch(() => {
         setStatus('error');
         toast.error('Sign-in failed');
-        console.error('Auth error:', error);
-      } finally {
+      })
+      .finally(() => {
         const next = new URLSearchParams(window.location.search).get('next') || '/events';
         setTimeout(() => {
           window.location.replace(next);
         }, 400);
-      }
-    };
-
-    handleAuth();
+      });
   }, []);
 
   return (
