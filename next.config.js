@@ -36,12 +36,14 @@ const nextConfig = {
     return config;
   },
   
-  // Ensure proper routing for Appwrite Sites
-  async rewrites() {
+  // Handle redirects to prevent API route issues
+  async redirects() {
     return [
+      // Redirect API routes with trailing slash to without trailing slash
       {
-        source: '/api/:path*',
+        source: '/api/:path*/',
         destination: '/api/:path*',
+        permanent: false,
       },
     ];
   },
