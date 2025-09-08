@@ -17,8 +17,34 @@ const ADMIN_TEAM_ID = process.env.NEXT_PUBLIC_APPWRITE_ADMIN_TEAM_ID;
 const DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID as string | undefined;
 const EVENTS_COL = process.env.NEXT_PUBLIC_APPWRITE_EVENTS_COLLECTION_ID as string | undefined;
 
+// Handle CORS preflight requests
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 export async function GET(req: NextRequest) {
-  if (!DB_ID || !EVENTS_COL) return Response.json([], { status: 200 });
+  // Add proper headers for CORS and content type
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
+  if (!DB_ID || !EVENTS_COL) {
+    return Response.json({ error: 'Database not configured', data: [] }, { 
+      status: 200, 
+      headers 
+    });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const creatorId = searchParams.get('creatorId');
@@ -42,10 +68,20 @@ export async function GET(req: NextRequest) {
       creatorId: d.creatorId,
       genre: d.genre || [],
     }));
-    return Response.json(mapped);
+    return Response.json({ data: mapped, success: true }, { 
+      status: 200, 
+      headers 
+    });
   } catch (e) {
     console.error('[api/events][GET] error', e);
-    return Response.json([], { status: 200 });
+    return Response.json({ 
+      error: 'Failed to fetch events', 
+      data: [], 
+      success: false 
+    }, { 
+      status: 200, 
+      headers 
+    });
   }
 }
 
