@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configure for Appwrite Sites deployment
-  trailingSlash: true,
+  // Explicitly disable trailing slash for ALL routes
+  trailingSlash: false,
   
   // Disable image optimization for better compatibility
   images: {
@@ -36,10 +36,9 @@ const nextConfig = {
     return config;
   },
   
-  // Handle redirects to prevent API route issues
+  // Force redirects from trailing slash to no trailing slash
   async redirects() {
     return [
-      // Redirect API routes with trailing slash to without trailing slash
       {
         source: '/api/:path*/',
         destination: '/api/:path*',

@@ -18,11 +18,38 @@ const USERS_COL = process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID!;
 export async function GET(_: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await ctx.params;
+    console.log('API Users GET called for ID:', id);
+    
+    if (!DB_ID || !USERS_COL) {
+      return new Response(JSON.stringify({ error: 'Database not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    
     const res: any = await databases.listDocuments(DB_ID, USERS_COL, [Query.equal('userId', id)]);
-    if (!res.documents?.length) return new Response('Not found', { status: 404 });
-    return Response.json(res.documents[0]);
+    console.log('Found user documents:', res.documents?.length || 0);
+    
+    if (!res.documents?.length) {
+      return new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    
+    return new Response(JSON.stringify(res.documents[0]), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
+    });
   } catch (e: any) {
-    return new Response(e?.message || 'Failed', { status: 500 });
+    console.error('API Users GET error:', e);
+    return new Response(JSON.stringify({ error: e?.message || 'Failed to fetch user' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }
 

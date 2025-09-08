@@ -30,18 +30,18 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
-  // Add proper headers for CORS and content type
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
+  console.log('API Events GET called');
+  console.log('DB_ID:', DB_ID);
+  console.log('EVENTS_COL:', EVENTS_COL);
 
   if (!DB_ID || !EVENTS_COL) {
-    return Response.json({ error: 'Database not configured', data: [] }, { 
-      status: 200, 
-      headers 
+    console.log('Database not configured, returning empty response');
+    return new Response(JSON.stringify({ error: 'Database not configured', data: [] }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
     });
   }
 
@@ -54,8 +54,12 @@ export async function GET(req: NextRequest) {
     if (creatorId) queries.push(Query.equal('creatorId', creatorId));
     if (joinedBy) queries.push(Query.equal('joiners', joinedBy));
     if (code) queries.push(Query.equal('code', code));
+    
+    console.log('Fetching documents with queries:', queries);
     const res: any = await databases.listDocuments(DB_ID, EVENTS_COL, queries.length ? queries : undefined);
     const docs = res.documents || [];
+    console.log('Found documents:', docs.length);
+    
     const mapped = docs.map((d: any) => ({
       id: d.$id,
       title: d.title,
@@ -68,19 +72,27 @@ export async function GET(req: NextRequest) {
       creatorId: d.creatorId,
       genre: d.genre || [],
     }));
-    return Response.json({ data: mapped, success: true }, { 
-      status: 200, 
-      headers 
+    
+    console.log('Returning mapped data:', mapped.length, 'events');
+    return new Response(JSON.stringify({ data: mapped, success: true }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
     });
   } catch (e) {
     console.error('[api/events][GET] error', e);
-    return Response.json({ 
+    return new Response(JSON.stringify({ 
       error: 'Failed to fetch events', 
       data: [], 
       success: false 
-    }, { 
-      status: 200, 
-      headers 
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
     });
   }
 }

@@ -16,43 +16,30 @@ export default function ApiTestPage() {
       setApiStatus('Testing API...');
       setError('');
       
-      // Test both with and without trailing slash
-      const urls = ['/api/events', '/api/events/'];
-      let response;
-      let text;
+      // Test the API endpoint
+      const url = '/api/events';
+      console.log(`Testing URL: ${url}`);
       
-      for (const url of urls) {
-        try {
-          console.log(`Testing URL: ${url}`);
-          response = await fetch(url, {
-            redirect: 'follow', // Follow redirects
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-            }
-          });
-          text = await response.text();
-          
-          console.log(`URL: ${url}`);
-          console.log('Raw response:', text);
-          console.log('Response status:', response.status);
-          console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-          
-          // Check if response looks like JSON
-          if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
-            break; // Found valid JSON response
-          }
-        } catch (urlError) {
-          console.log(`Error with ${url}:`, urlError);
-          continue;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         }
-      }
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const text = await response.text();
+      console.log('Raw response:', text);
       
       // Try to parse as JSON
       try {
         if (!text) {
           throw new Error('No response text received');
         }
+        
         const json = JSON.parse(text);
         setApiResponse(json);
         setApiStatus('API working!');
