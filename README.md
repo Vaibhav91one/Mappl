@@ -78,18 +78,23 @@ Mappl is a modern, interactive web application that allows users to create, disc
    ```
 
 3. **Set up environment variables**
-   Create a `.env.local` file in the root directory:
+   Copy the example environment file and configure your variables:
+   ```bash
+   cp env.example .env.local
+   ```
+   
+   Then edit `.env.local` with your actual Appwrite configuration:
    ```env
-   NEXT_PUBLIC_APPWRITE_ENDPOINT=your_appwrite_endpoint
-   NEXT_PUBLIC_APPWRITE_PROJECT_ID=your_project_id
-   NEXT_PUBLIC_APPWRITE_API_KEY=your_api_key
-   NEXT_PUBLIC_APPWRITE_DATABASE_ID=your_database_id
-   NEXT_PUBLIC_APPWRITE_EVENTS_COLLECTION_ID=your_events_collection_id
-   NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID=your_users_collection_id
-   NEXT_PUBLIC_APPWRITE_MESSAGES_COLLECTION_ID=your_messages_collection_id
-   NEXT_PUBLIC_APPWRITE_BUCKET_ID=your_storage_bucket_id
-   NEXT_PUBLIC_APPWRITE_ADMIN_TEAM_ID=your_admin_team_id
-   GOOGLE_SITE_VERIFICATION=your_google_verification_code
+   NEXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+   NEXT_PUBLIC_APPWRITE_PROJECT_ID=your_project_id_here
+   NEXT_PUBLIC_APPWRITE_API_KEY=your_api_key_here
+   NEXT_PUBLIC_APPWRITE_DATABASE_ID=your_database_id_here
+   NEXT_PUBLIC_APPWRITE_EVENTS_COLLECTION_ID=your_events_collection_id_here
+   NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID=your_users_collection_id_here
+   NEXT_PUBLIC_APPWRITE_MESSAGES_COLLECTION_ID=your_messages_collection_id_here
+   NEXT_PUBLIC_APPWRITE_BUCKET_ID=your_storage_bucket_id_here
+   NEXT_PUBLIC_APPWRITE_ADMIN_TEAM_ID=your_admin_team_id_here
+   GOOGLE_SITE_VERIFICATION=your_google_verification_code_here
    ```
 
 4. **Set up Appwrite**
@@ -193,6 +198,24 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Leaflet](https://leafletjs.com/) - Interactive maps
 - [Tailwind CSS](https://tailwindcss.com/) - CSS framework
 - [shadcn/ui](https://ui.shadcn.com/) - UI components
+
+## 🔧 Troubleshooting
+
+### Build Issues
+- **Environment Variables**: Ensure all required environment variables are set in `.env.local`
+- **Appwrite Configuration**: Verify your Appwrite project ID, API key, and collection IDs are correct
+- **Network Issues**: Check if your Appwrite endpoint is accessible and the API key has proper permissions
+
+### Common Issues
+- **"Cannot read properties of undefined"**: Usually indicates missing environment variables
+- **Authentication Errors**: Verify OAuth providers are properly configured in Appwrite
+- **Database Errors**: Ensure collections exist and have proper permissions set
+
+### Development Tips
+- Use `npm run dev` for development with hot reload
+- Check browser console for client-side errors
+- Monitor network requests in browser dev tools
+- Verify Appwrite console for server-side logs
 
 ## 📞 Support
 
