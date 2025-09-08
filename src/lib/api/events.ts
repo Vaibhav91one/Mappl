@@ -18,7 +18,21 @@ export async function listEvents(params?: { creatorId?: string; joinedBy?: strin
   if (params?.code) qs.set('code', params.code);
   const res = await fetch(`/api/events${qs.toString() ? `?${qs.toString()}` : ''}`);
   if (!res.ok) return [] as EventDTO[];
-  return (await res.json()) as EventDTO[];
+  
+  const json = await res.json();
+  
+  // Handle new API response format: { data: [...], success: true }
+  if (json && typeof json === 'object' && Array.isArray(json.data)) {
+    return json.data as EventDTO[];
+  }
+  
+  // Handle legacy format (direct array)
+  if (Array.isArray(json)) {
+    return json as EventDTO[];
+  }
+  
+  // Fallback to empty array
+  return [] as EventDTO[];
 }
 
 export async function createEvent(payload: Omit<EventDTO, 'id'>) {
@@ -28,7 +42,15 @@ export async function createEvent(payload: Omit<EventDTO, 'id'>) {
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error('Create failed');
-  return (await res.json()) as EventDTO;
+  
+  const json = await res.json();
+  
+  // Handle potential wrapped response format
+  if (json && typeof json === 'object' && json.data) {
+    return json.data as EventDTO;
+  }
+  
+  return json as EventDTO;
 }
 
 export async function updateEvent(id: string, updates: Partial<EventDTO>) {
@@ -38,7 +60,15 @@ export async function updateEvent(id: string, updates: Partial<EventDTO>) {
     body: JSON.stringify(updates),
   });
   if (!res.ok) throw new Error('Update failed');
-  return (await res.json()) as EventDTO;
+  
+  const json = await res.json();
+  
+  // Handle potential wrapped response format
+  if (json && typeof json === 'object' && json.data) {
+    return json.data as EventDTO;
+  }
+  
+  return json as EventDTO;
 }
 
 export async function deleteEvent(id: string) {
@@ -54,7 +84,15 @@ export async function joinEvent(id: string, userId: string) {
     body: JSON.stringify({ userId }),
   });
   if (!res.ok) throw new Error('Join failed');
-  return (await res.json()) as EventDTO;
+  
+  const json = await res.json();
+  
+  // Handle potential wrapped response format
+  if (json && typeof json === 'object' && json.data) {
+    return json.data as EventDTO;
+  }
+  
+  return json as EventDTO;
 }
 
 
