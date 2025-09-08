@@ -168,16 +168,24 @@ mappl/
 
 ## 🌐 Deployment
 
-### Vercel (Recommended)
+### Appwrite Sites (Recommended)
+1. **Configure Environment Variables**: Set up all required Appwrite environment variables
+2. **Build the Project**: `npm run build`
+3. **Deploy**: Use Appwrite CLI or Console to deploy the `.next` folder
+4. **Configure Domain**: Set up custom domain and SSL certificate
+
+For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+### Vercel (Alternative)
 1. Push your code to GitHub
 2. Connect your repository to Vercel
 3. Add environment variables in Vercel dashboard
 4. Deploy automatically
 
-### Appwrite Sites
-1. Build the project: `npm run build`
-2. Deploy to Appwrite Sites using the CLI
-3. Configure custom domain if needed
+### Other Platforms
+- **Netlify**: Static site deployment
+- **Railway**: Full-stack deployment
+- **DigitalOcean**: VPS deployment
 
 ## 🤝 Contributing
 
