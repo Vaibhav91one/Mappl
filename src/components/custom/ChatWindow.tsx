@@ -221,7 +221,7 @@ export default function ChatWindow({ code, currentUserId, hasUserJoined = false,
               hoverIcon={UserPlus}
               variant="primary"
               size="sm"
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 rounded-full"
             >
               Join Event
             </IconTransitionButton>

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://mappl.appwrite.network/sitemap.xml
+
+# Disallow API routes from being indexed
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /events
+Allow: /auth
+Allow: /dashboard

@@ -1,0 +1,26 @@
+{
+  "name": "Mappl - Event Discovery Platform",
+  "short_name": "Mappl",
+  "description": "Discover and join exciting events happening around you",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#141416",
+  "orientation": "portrait-primary",
+  "categories": ["social", "lifestyle", "entertainment"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/logos/mappl_logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    }
+  ]
+}
