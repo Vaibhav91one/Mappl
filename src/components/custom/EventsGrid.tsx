@@ -61,9 +61,9 @@ export default function EventsGrid({
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
+      <div className="text-center gap-2 flex flex-col items-center justify-center mb-6">
         <FlipText
-          className="text-3xl font-semibold mb-6"
+          className="text-3xl font-semibold mb-6 inline-block"
           duration={0.5}
           stagger={0.02}
         >
@@ -76,7 +76,7 @@ export default function EventsGrid({
             defaultIcon={Circle}
             hoverIcon={Search}
             variant="outline"
-            size="md"
+            size="sm"
           >
             Search events
           </IconTransitionButton>

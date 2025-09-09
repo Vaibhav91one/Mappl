@@ -50,7 +50,7 @@ export default function DashboardPage() {
       setCreated(createdData as any);
       setJoined(joinedData as any);
     } catch (error) {
-      console.error('Failed to join event:', error);
+      // Handle error silently
     }
   }
 
@@ -107,7 +107,7 @@ export default function DashboardPage() {
 
       <section>
         <FlipText
-          className="text-lg font-semibold mb-4"
+          className="text-lg font-semibold mb-4 inline-block"
           duration={0.5}
           stagger={0.02}
         >
@@ -184,7 +184,7 @@ export default function DashboardPage() {
 
       <section>
         <FlipText
-          className="text-lg font-semibold mb-4"
+          className="text-lg font-semibold mb-4 inline-block"
           duration={0.5}
           stagger={0.02}
         >
@@ -248,7 +248,7 @@ export default function DashboardPage() {
                     await storage.deleteFile(BUCKET_ID, fileId);
                   }
                 } catch (deleteError) {
-                  console.warn('Failed to delete old image:', deleteError);
+                  // Handle delete error silently
                 }
               }
             };
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                 const json = await r.json();
                 imageUrl = json.url as string;
               } else {
-                console.error('Upload failed:', r.status, r.statusText);
+                // Upload failed
               }
             }
             let isoDate: string | undefined = undefined;
@@ -352,7 +352,6 @@ function UserHeader({ userId, fallbackName }: { userId: string; fallbackName?: s
             alt="avatar"
             className="h-10 w-10 rounded-full object-cover"
             onError={(e) => {
-              console.error('Avatar image failed to load:', doc.avatarUrl);
               // Hide the image and show fallback
               (e.target as HTMLImageElement).style.display = 'none';
               const fallback = (e.target as HTMLImageElement).nextElementSibling as HTMLElement;

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { CursorProvider } from "@/components/cursor/CursorProvider";
 import { Toaster } from "sonner";
 import NavBar from "@/components/NavBar";
 
@@ -89,11 +90,13 @@ export default function RootLayout({
         className={`${notoSans.variable} ${notoSans.className} antialiased`}
       >
         <AuthProvider>
-        <header className="border-b">
-          <NavBar />
-        </header>
-        <main>{children}</main>
-        <Toaster richColors position="top-center" />
+          <CursorProvider>
+            <header className="border-b">
+              <NavBar />
+            </header>
+            <main>{children}</main>
+            <Toaster richColors position="top-center" />
+          </CursorProvider>
         </AuthProvider>
       </body>
     </html>

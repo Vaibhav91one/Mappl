@@ -4,12 +4,11 @@ import dynamic from 'next/dynamic';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { EventMarkerIcon, SearchMarkerIcon } from '@/lib/leaflet-icons';
 
-const DefaultIcon = L.icon({
-  iconUrl: '/leaflet/marker-icon.png',
-  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
-  shadowUrl: '/leaflet/marker-shadow.png',
-});
+// Use Lucide React-based icons
+const DefaultIcon = EventMarkerIcon;
+const RedIcon = SearchMarkerIcon;
 
 type Props = {
   location: { lat: number; lng: number } | null;
@@ -25,12 +24,6 @@ function ClickCapture({ onPick }: { onPick: (lat: number, lng: number) => void }
   });
   return null;
 }
-
-const RedIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-  iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  shadowUrl: '/leaflet/marker-shadow.png',
-});
 
 export default function MiniMapPicker({ location, onChange, highlight }: Props) {
   const center: [number, number] = location ? [location.lat, location.lng] : [20.0, 0.0];

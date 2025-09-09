@@ -58,7 +58,7 @@ export default function StackedAvatars({
         const validUsers = userResults.filter(Boolean);
         setUsers(validUsers);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        // Handle error silently
       } finally {
         setLoading(false);
       }

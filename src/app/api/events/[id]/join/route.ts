@@ -59,7 +59,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         }
       }
     } catch (userError) {
-      console.warn('Failed to update user joinedEventIds:', userError);
+      // Handle user update error silently
     }
 
     // Return updated event
@@ -78,7 +78,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     return Response.json(mapped);
   } catch (e: any) {
-    console.error('Join event error:', e);
     return new Response('Join failed', { status: 500 });
   }
 }

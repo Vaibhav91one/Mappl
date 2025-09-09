@@ -2,6 +2,8 @@
 
 import IconTransitionButton from '@/components/ui/IconTransitionButton';
 import CircularLoader from '@/components/ui/CircularLoader';
+import ShareEvent from '@/components/custom/ShareEvent';
+import GenrePill from '@/components/ui/GenrePill';
 import { Circle, MessageCircle, Eye, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -102,7 +104,6 @@ function formatDateTime(dateStr?: string, timeStr?: string): string {
     const result = formattedDate && formattedTime ? `${formattedDate} ${formattedTime}` : (formattedDate || formattedTime || dateStr || timeStr || '');
     return result;
   } catch (error) {
-    console.error('Date formatting error:', error);
     return dateStr || timeStr || '';
   }
 }
@@ -162,7 +163,6 @@ export default function EventCard({
             setResolvedLocation(`${event.location.lat.toFixed(4)}, ${event.location.lng.toFixed(4)}`);
           }
         } catch (error) {
-          console.error('Location resolution error:', error);
           setResolvedLocation(`${event.location.lat.toFixed(4)}, ${event.location.lng.toFixed(4)}`);
         } finally {
           setIsResolvingLocation(false);
@@ -190,23 +190,23 @@ export default function EventCard({
         </div>
       )}
       
-      <div className="p-5 min-h-[180px] flex flex-col justify-between">
+      <div className="p-5 min-h-[250px] flex flex-col justify-between rounded-t-lg border border-1">
         <div>
           {/* Date and Time - formatted as "Fri, 26 Sep, 6:00 PM" */}
           {formatDateTime(event.date, event.time) && (
-            <p className="text-sm text-gray-500 mb-1 font-medium">
+            <p className="text-sm text-gray-500 mb-2 font-medium">
               {formatDateTime(event.date, event.time)}
             </p>
           )}
           
           {/* Event Title */}
-          <h3 className="text-lg font-bold text-black mb-1 line-clamp-2">
+          <h3 className="text-lg font-bold text-black mb-2 line-clamp-2">
             {event.title}
           </h3>
           
           {/* Location with Map Icon */}
           {(resolvedLocation || event.location || isResolvingLocation) && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-2  ">
               <MapPin size={14} className="text-gray-500 flex-shrink-0" />
               <div className="flex items-center gap-2 flex-1">
                 {isResolvingLocation && <CircularLoader size="sm" />}
@@ -219,26 +219,28 @@ export default function EventCard({
 
           {/* Genre Tags */}
           {event.genre && event.genre.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
+            <div className="flex flex-wrap gap-2 mt-6">
               {event.genre.slice(0, 3).map((g, index) => (
-                <span 
-                  key={index}
-                  className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                >
-                  {g}
-                </span>
+                <GenrePill key={index} genre={g} />
               ))}
               {event.genre.length > 3 && (
-                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                  +{event.genre.length - 3} more
-                </span>
+                <GenrePill 
+                  genre={`+${event.genre.length - 3} more`} 
+                  className="bg-gray-100 text-gray-600"
+                />
               )}
             </div>
           )}
         </div>
         
-        {/* Chat button - positioned at bottom right */}
-        <div className=" flex justify-end">
+        {/* Action buttons - positioned at bottom right */}
+        <div className="flex justify-center gap-2">
+          <ShareEvent
+            event={event}
+            variant="outline"
+            size="sm"
+            className="text-xs"
+          />
           <IconTransitionButton
             size="sm"
             variant="primary"

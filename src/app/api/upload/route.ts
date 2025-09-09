@@ -38,7 +38,6 @@ export async function POST(req: NextRequest) {
     const url = `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${created.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
     return Response.json({ fileId: created.$id, url });
   } catch (e: any) {
-    console.error('[api/upload] error', e);
     return new Response(e?.message || 'Upload failed', { status: 500 });
   }
 }

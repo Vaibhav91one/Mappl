@@ -7,6 +7,8 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
 import IconTransitionButton from '@/components/ui/IconTransitionButton';
 import StackedAvatars from '@/components/ui/StackedAvatars';
+import ShareEvent from '@/components/custom/ShareEvent';
+import GenrePill from '@/components/ui/GenrePill';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -203,7 +205,7 @@ export default function EventDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={(mode === 'create' ? 'z-[10000] ' : '') + (mode === 'join' ? 'max-h-[90vh] w-[95vw] sm:max-w-4xl overflow-hidden' : 'max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto')}>
+      <DialogContent className={(mode === 'create' ? 'z-[10000] ' : '') + (mode === 'join' ? 'max-h-[90vh] w-[95vw] sm:max-w-4xl overflow-hidden' : 'max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-hidden overflow-y-auto')}>
         <DialogHeader>
           {mode === 'join' ? (
             <VisuallyHidden>
@@ -251,6 +253,17 @@ export default function EventDialog({
             {typeof eventData?.joiners?.length === 'number' && (
               <div className="text-xs">People joining: {eventData.joiners?.length ?? 0}</div>
             )}
+            
+            {/* Share Button for View Mode */}
+            {eventData && (
+              <div className="pt-3">
+                <ShareEvent
+                  event={eventData}
+                  variant="outline"
+                  size="sm"
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -262,7 +275,7 @@ export default function EventDialog({
                 <img 
                   src={eventData.imageUrl} 
                   alt={eventData.title || 'event'} 
-                  className="w-full h-full object-cover rounded-l-lg" 
+                  className="w-full h-full object-cover rounded-xl border border-1" 
                 />
               ) : (
                 <div className="w-full h-full bg-gray-200 rounded-l-lg flex items-center justify-center">
@@ -321,14 +334,9 @@ export default function EventDialog({
                 {eventData?.genre && eventData.genre.length > 0 && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">Genre:</span>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-2">
                       {eventData.genre.map((g, index) => (
-                        <span 
-                          key={index}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                        >
-                          {g}
-                        </span>
+                        <GenrePill key={index} genre={g} />
                       ))}
                     </div>
                   </div>
@@ -364,8 +372,8 @@ export default function EventDialog({
                 )}
               </div>
 
-              {/* Join Button */}
-              <div className="mt-6">
+              {/* Action Buttons */}
+              <div className="flex justify-start items-center gap-2">
                 <IconTransitionButton
                   onClick={() => {
                     if (!isAuthenticated) {
@@ -377,12 +385,22 @@ export default function EventDialog({
                   defaultIcon={!isAuthenticated ? UserPlus : hasUserJoined ? Check : UserPlus}
                   hoverIcon={!isAuthenticated ? UserPlus : hasUserJoined ? Check : Check}
                   variant={!isAuthenticated ? "outline" : hasUserJoined ? "secondary" : "primary"}
-                  size="md"
+                  size="sm"
                   disabled={!!hasUserJoined}
-                  className="w-full justify-center focus:outline-none focus:ring-0 shadow-none"
+                  className="focus:outline-none focus:ring-0 shadow-none "
                 >
-                  {!isAuthenticated ? 'SIGN IN TO JOIN' : hasUserJoined ? 'ALREADY JOINED' : 'JOIN EVENT'}
+                  {!isAuthenticated ? 'Sign in to join' : hasUserJoined ? 'ALREADY JOINED' : 'JOIN EVENT'}
                 </IconTransitionButton>
+                
+                {/* Share Button */}
+                {eventData && (
+                  <ShareEvent
+                    event={eventData}
+                    variant="outline"
+                    size="sm"
+                    className="justify-center "
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -391,7 +409,7 @@ export default function EventDialog({
         {!content && isEditable && (
           <div className="space-y-4">
             <div className="space-y-1">
-              <Label className="py-2" htmlFor="title">Title</Label>
+              <Label className="py-2 "  htmlFor="title">Title</Label>
               <Input id="title" value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} />
             </div>
             <div className="space-y-1">
@@ -413,7 +431,7 @@ export default function EventDialog({
               </div>
 
               {/* Premade genre pills */}
-              <div className="space-y-2">
+              <div className="space-y-2 py-2 ">
                 <Label className="text-sm text-gray-600">Or select from popular genres:</Label>
                 <div className="flex flex-wrap gap-2">
                   {premadeGenres.map((premadeGenre) => (
@@ -438,21 +456,15 @@ export default function EventDialog({
               {genre.length > 0 && (
                 <div className="space-y-2">
                   <Label className="text-sm text-gray-600">Selected genres:</Label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {genre.map((g, index) => (
-                      <span 
+                      <GenrePill
                         key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                      >
-                        {g}
-                        <button
-                          type="button"
-                          onClick={() => removeGenre(g)}
-                          className="ml-1 hover:text-blue-600"
-                        >
-                          ×
-                        </button>
-                      </span>
+                        genre={g}
+                        size="md"
+                        removable={true}
+                        onRemove={removeGenre}
+                      />
                     ))}
                   </div>
                 </div>
@@ -503,7 +515,7 @@ export default function EventDialog({
               </div>
             )}
             {includeLocationPicker && (
-              <div className="space-y-2">
+              <div className="space-y-2 py-2">
                 <div className="flex items-start gap-3">
                   <div className="flex-1">
                     {mounted ? (
@@ -519,7 +531,7 @@ export default function EventDialog({
                   <div className="text-xs text-gray-600">
                     {location ? (
                       <>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 py-2">
                           <MapPin size={12} />
                           <span>Location: ({location.lat.toFixed(5)}, {location.lng.toFixed(5)})</span>
                         </div>
@@ -534,7 +546,7 @@ export default function EventDialog({
                       'Click on the map to choose a location.'
                     )}
                   </div>
-                  <div className="flex justify-center">
+                  <div className="flex justify-center py-2">
                     <IconTransitionButton
                       size="sm"
                       variant="outline"
@@ -570,7 +582,7 @@ export default function EventDialog({
                     alt={previewUrl ? "preview" : "current"} 
                     className="w-full h-48 rounded-lg object-cover" 
                   />
-                  <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg">
                     <IconTransitionButton
                       onClick={() => document.getElementById('file')?.click()}
                       defaultIcon={Plus}

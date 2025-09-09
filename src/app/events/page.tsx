@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { listEvents, createEvent as apiCreateEvent, updateEvent, joinEvent } from '@/lib/api/events';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import EventDialog from '@/components/custom/EventDialog';
 import SearchLocationCommand from '@/components/custom/SearchLocationCommand';
 import SearchEventsCommand from '@/components/custom/SearchEventsCommand';
+import GenrePill from '@/components/ui/GenrePill';
 import EventsGrid from '@/components/custom/EventsGrid';
 import ChatWindow from '@/components/custom/ChatWindow';
 import IconTransitionButton from '@/components/ui/IconTransitionButton';
@@ -47,8 +49,9 @@ type EventItem = {
 
 type Suggestion = { label: string; lat: number; lng: number };
 
-export default function EventsPage() {
+function EventsPageContent() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState<boolean>(false);
@@ -76,6 +79,8 @@ export default function EventsPage() {
   const [activeEvent, setActiveEvent] = useState<EventItem | null>(null);
   const [open, setOpen] = useState(false);
   const [searchEventsOpen, setSearchEventsOpen] = useState(false);
+  const [eventModalOpen, setEventModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   
   // Premade genre options
   const premadeGenres = [
@@ -167,7 +172,7 @@ export default function EventsPage() {
       const eventsData = await listEvents();
       setEvents(eventsData as any);
     } catch (error) {
-      console.error('Failed to join event:', error);
+      // Handle error silently
     }
   }
 
@@ -222,6 +227,29 @@ export default function EventsPage() {
       .catch(() => setEvents([]))
       .finally(() => setLoadingEvents(false));
   }, []);
+
+  // Function to find event by code
+  const findEventByCode = (code: string): EventItem | null => {
+    return events.find(event => event.code === code) || null;
+  };
+
+  // Handle URL parameters to open event modal
+  useEffect(() => {
+    if (!mounted || !searchParams) return;
+    
+    const eventCode = searchParams.get('event');
+    if (eventCode && events.length > 0) {
+      const event = findEventByCode(eventCode);
+      if (event) {
+        setSelectedEvent(event);
+        setEventModalOpen(true);
+        // Clear the URL parameter
+        const url = new URL(window.location.href);
+        url.searchParams.delete('event');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+  }, [mounted, searchParams, events]);
 
   function selectSuggestion(s: { lat: number; lng: number; label: string }) {
     setCenter({ lat: s.lat, lng: s.lng });
@@ -416,7 +444,7 @@ export default function EventsPage() {
         initialLocation={pendingLatLng}
         onOpenChange={setModalOpen}
         content={(
-          <div className="space-y-3">
+          <div className="space-y-3 overflow-y-auto">
             <DialogDescription asChild>
               {pendingLatLng ? (
                 <div className="space-y-1">
@@ -484,21 +512,15 @@ export default function EventsPage() {
               {form.genre.length > 0 && (
                 <div className="space-y-2">
                   <Label className="text-sm text-gray-600">Selected genres:</Label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {form.genre.map((g, index) => (
-                      <span 
+                      <GenrePill
                         key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                      >
-                        {g}
-                        <button
-                          type="button"
-                          onClick={() => removeGenre(g)}
-                          className="ml-1 hover:text-blue-600"
-                        >
-                          ×
-                        </button>
-                      </span>
+                        genre={g}
+                        size="md"
+                        removable={true}
+                        onRemove={removeGenre}
+                      />
                     ))}
                   </div>
                 </div>
@@ -586,6 +608,47 @@ export default function EventsPage() {
         )}
         secondaryLabel="Close"
       />
+
+      {/* Event Modal for URL parameters */}
+      <EventDialog
+        open={eventModalOpen}
+        mode="join"
+        eventData={selectedEvent || undefined}
+        includeDateTime={false}
+        includeLocationPicker={false}
+        currentUserId={user?.$id}
+        onOpenChange={setEventModalOpen}
+        secondaryLabel="Close"
+        onPrimary={() => {
+          if (!selectedEvent) return;
+          if (user && selectedEvent.joiners?.includes(user.$id)) return;
+          const already = new Set(selectedEvent.joiners || []);
+          const uid = user?.$id || 'guest';
+          already.add(uid);
+          updateEvent(selectedEvent.id, { joiners: Array.from(already) } as any)
+            .then(() => {
+              setEvents(prev => prev.map(e => 
+                e.id === selectedEvent.id 
+                  ? { ...e, joiners: Array.from(already) }
+                  : e
+              ));
+              setSelectedEvent(prev => prev ? { ...prev, joiners: Array.from(already) } : null);
+            })
+            .catch(() => {});
+        }}
+      />
     </div>
+  );
+}
+
+export default function EventsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900"></div>
+      </div>
+    }>
+      <EventsPageContent />
+    </Suspense>
   );
 }

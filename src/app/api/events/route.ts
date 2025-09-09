@@ -30,12 +30,8 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
-  console.log('API Events GET called');
-  console.log('DB_ID:', DB_ID);
-  console.log('EVENTS_COL:', EVENTS_COL);
 
   if (!DB_ID || !EVENTS_COL) {
-    console.log('Database not configured, returning empty response');
     return new Response(JSON.stringify({ error: 'Database not configured', data: [] }), {
       status: 200,
       headers: {
@@ -55,10 +51,8 @@ export async function GET(req: NextRequest) {
     if (joinedBy) queries.push(Query.equal('joiners', joinedBy));
     if (code) queries.push(Query.equal('code', code));
     
-    console.log('Fetching documents with queries:', queries);
     const res: any = await databases.listDocuments(DB_ID, EVENTS_COL, queries.length ? queries : undefined);
     const docs = res.documents || [];
-    console.log('Found documents:', docs.length);
     
     const mapped = docs.map((d: any) => ({
       id: d.$id,
@@ -73,7 +67,6 @@ export async function GET(req: NextRequest) {
       genre: d.genre || [],
     }));
     
-    console.log('Returning mapped data:', mapped.length, 'events');
     return new Response(JSON.stringify({ data: mapped, success: true }), {
       status: 200,
       headers: {
@@ -82,7 +75,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (e) {
-    console.error('[api/events][GET] error', e);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch events', 
       data: [], 

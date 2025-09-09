@@ -149,11 +149,11 @@ export async function DELETE(_: NextRequest, ctx: { params: Promise<{ id: string
           try {
             await databases.deleteDocument(DB_ID, MSG_COL, msgId);
           } catch (deleteError) {
-            console.warn(`Failed to delete message ${msgId}:`, deleteError);
+            // Handle delete error silently
           }
         }
       } catch (msgError) {
-        console.warn('Failed to delete associated messages:', msgError);
+        // Handle message deletion error silently
       }
     }
 

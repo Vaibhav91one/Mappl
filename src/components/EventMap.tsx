@@ -8,6 +8,7 @@ import L from 'leaflet';
 import StackedAvatars from '@/components/ui/StackedAvatars';
 import { format } from 'date-fns';
 import { Calendar, Clock, MapPin } from 'lucide-react';
+import { EventMarkerIcon, SearchMarkerIcon, JoinedEventMarkerIcon } from '@/lib/leaflet-icons';
 
 type EventItem = {
   id: string;
@@ -22,17 +23,9 @@ type EventItem = {
   placeName?: string;
 };
 
-const DefaultIcon = L.icon({
-  iconUrl: '/leaflet/marker-icon.png',
-  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
-  shadowUrl: '/leaflet/marker-shadow.png',
-});
-
-const RedIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-  iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  shadowUrl: '/leaflet/marker-shadow.png',
-});
+// Use Lucide React-based icons
+const DefaultIcon = EventMarkerIcon;
+const RedIcon = SearchMarkerIcon;
 
 type Props = {
   events: EventItem[];
@@ -73,8 +66,13 @@ export default function EventMap({ events, onMapClick, onJoinClick, searchMarker
         {searchMarker && (
           <Marker position={[searchMarker.lat, searchMarker.lng]} icon={RedIcon} />
         )}
-        {events.map((event) => (
-          <Marker key={event.id} position={[event.location.lat, event.location.lng]} icon={DefaultIcon}>
+        {events.map((event) => {
+          // Use different icons based on whether user has joined
+          const hasUserJoined = Array.isArray(event.joiners) && !!currentUserId && event.joiners.includes(currentUserId);
+          const markerIcon = hasUserJoined ? JoinedEventMarkerIcon : EventMarkerIcon;
+          
+          return (
+            <Marker key={event.id} position={[event.location.lat, event.location.lng]} icon={markerIcon}>
             <Popup>
               <div className="space-y-3 w-64">
                 {/* Event Image */}
@@ -137,7 +135,8 @@ export default function EventMap({ events, onMapClick, onJoinClick, searchMarker
               </div>
             </Popup>
           </Marker>
-        ))}
+          );
+        })}
       </MapContainer>
     </div>
   );

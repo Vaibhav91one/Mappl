@@ -18,7 +18,6 @@ export default function ApiTestPage() {
       
       // Test the API endpoint
       const url = '/api/events';
-      console.log(`Testing URL: ${url}`);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -28,11 +27,8 @@ export default function ApiTestPage() {
         }
       });
       
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       const text = await response.text();
-      console.log('Raw response:', text);
       
       // Try to parse as JSON
       try {

@@ -112,7 +112,7 @@ export default function ChatWindow({ code, currentUserId, hasUserJoined = false,
       
       subRef.current = unsubscribe;
     } catch (e) {
-      console.error('Realtime subscription failed:', e);
+      // Handle subscription error silently
     }
     
     return () => {
