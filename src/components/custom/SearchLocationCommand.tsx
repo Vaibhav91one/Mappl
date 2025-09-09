@@ -35,7 +35,7 @@ export default function SearchLocationCommand({ open, onOpenChange, onSelect, ti
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(async () => {
       try {
-        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(query)}`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
         const data: Array<{ lat: string; lon: string; display_name: string }> = await res.json();
         const mapped: Suggestion[] = data.slice(0, 8).map((d) => ({ label: d.display_name, lat: parseFloat(d.lat), lng: parseFloat(d.lon) }));
         setSuggestions(mapped);

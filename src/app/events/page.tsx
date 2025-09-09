@@ -240,7 +240,7 @@ export default function EventsPage() {
     setPlaceResolving(true);
     (async () => {
       try {
-        const url = `/api/geocode/reverse?lat=${pendingLatLng.lat}&lon=${pendingLatLng.lng}`;
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pendingLatLng.lat}&lon=${pendingLatLng.lng}`;
         const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
         const data: { display_name?: string } = await res.json();
         if (!ignore) {
