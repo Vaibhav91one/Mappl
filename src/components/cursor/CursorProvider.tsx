@@ -38,7 +38,7 @@ export const CursorProvider = ({ children }: { children: React.ReactNode }) => {
     gsap.to(cursorRef.current, {
       x: x - 10,
       y: y - 10,
-      duration: 0.5,
+      duration: 0.4,
       ease: "power2.out",
     });
   };

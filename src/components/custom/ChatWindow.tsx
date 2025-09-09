@@ -207,7 +207,7 @@ export default function ChatWindow({ code, currentUserId, hasUserJoined = false,
               hoverIcon={LogIn}
               variant="primary"
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 rounded-full"
             >
               Sign In
             </IconTransitionButton>
