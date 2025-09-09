@@ -129,7 +129,7 @@ export default function EventCard({
         setIsResolvingLocation(true);
         try {
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${event.location.lat}&lon=${event.location.lng}&addressdetails=1&zoom=16`
+            `/api/geocode/reverse?lat=${event.location.lat}&lon=${event.location.lng}`
           );
           const data = await response.json();
           

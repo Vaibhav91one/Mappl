@@ -172,7 +172,7 @@ export default function EventDialog({
     setPlaceResolving(true);
     (async () => {
       try {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.lat}&lon=${loc.lng}`;
+        const url = `/api/geocode/reverse?lat=${loc.lat}&lon=${loc.lng}`;
         const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
         const data: { display_name?: string } = await res.json();
         if (!ignore) setPlace(data.display_name || null);
