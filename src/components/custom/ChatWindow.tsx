@@ -70,6 +70,32 @@ export default function ChatWindow({ code, currentUserId, hasUserJoined = false,
               const exists = prev.some(m => m.id === event.payload.$id);
               if (exists) return prev;
               
+              // Don't add messages from the current user via realtime if they were sent optimistically
+              // (they should already be in the list from the optimistic update)
+              const isFromCurrentUser = event.payload.userId === currentUserId;
+              if (isFromCurrentUser) {
+                // Replace any temporary message with the real one
+                const tempMessageExists = prev.some(m => m.id.startsWith('temp-') && m.userId === currentUserId && m.text === event.payload.text);
+                if (tempMessageExists) {
+                  return prev.map(m => 
+                    m.id.startsWith('temp-') && m.userId === currentUserId && m.text === event.payload.text
+                      ? {
+                          id: event.payload.$id,
+                          code: event.payload.code,
+                          userId: event.payload.userId,
+                          text: event.payload.text,
+                          createdAt: event.payload.createdAt,
+                          userName: event.payload.userName,
+                          userAvatar: event.payload.userAvatar,
+                        }
+                      : m
+                  );
+                }
+                // If no temp message found, don't add it (avoid duplication)
+                return prev;
+              }
+              
+              // For messages from other users, add them normally
               return [...prev, {
                 id: event.payload.$id,
                 code: event.payload.code,
@@ -108,7 +134,8 @@ export default function ChatWindow({ code, currentUserId, hasUserJoined = false,
     if (sending) return;
     setSending(true);
     setText('');
-    // optimistic
+    
+    // Create optimistic message
     const tempId = `temp-${Date.now()}-${Math.random()}`;
     const temp: Message = {
       id: tempId,
@@ -118,12 +145,34 @@ export default function ChatWindow({ code, currentUserId, hasUserJoined = false,
       createdAt: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, temp]);
+    
     try {
       const saved = await sendMessage({ code, userId: currentUserId, text: value });
+      
+      // Replace temporary message with the saved one
+      // Note: The realtime subscription will handle this replacement automatically
+      // if it receives the event, but we do it here as a fallback
       setMessages((prev) => prev.map((m) => (m.id === tempId ? saved : m)));
-    } catch {
+      
+      // Clean up any potential duplicates after a short delay
+      setTimeout(() => {
+        setMessages((prev) => {
+          const seen = new Set<string>();
+          return prev.filter((m) => {
+            // Keep unique messages based on ID or text+userId for temp messages
+            const key = m.id.startsWith('temp-') ? `${m.text}-${m.userId}` : m.id;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        });
+      }, 100);
+    } catch (error) {
+      // Remove the temporary message on error
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-    } finally { setSending(false); }
+    } finally { 
+      setSending(false); 
+    }
   }
 
   return (

@@ -42,7 +42,7 @@ export default function IconTransitionButton({
   disabled = false,
   defaultIcon: DefaultIcon,
   hoverIcon: HoverIcon,
-  iconSize = 14,
+  iconSize = 10,
   hoverIconSize = 16,
   fillDefaultIcon = true,
   variant = 'primary',

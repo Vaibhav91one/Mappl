@@ -34,24 +34,66 @@ export async function GET(req: NextRequest) {
 
     console.log('Proxying request to:', nominatimUrl.toString());
 
-    // Make server-side request to Nominatim
-    const response = await fetch(nominatimUrl.toString(), {
-      headers: {
-        'User-Agent': 'Mappl/1.0 (https://mappl.appwrite.network)', // Required by Nominatim
-        'Accept': 'application/json',
-      },
-    });
+    let response;
+    let data;
+    
+    try {
+      // Make server-side request to Nominatim with timeout and better error handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      response = await fetch(nominatimUrl.toString(), {
+        headers: {
+          'User-Agent': 'Mappl/1.0 (https://mappl.appwrite.network)', // Required by Nominatim
+          'Accept': 'application/json',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Cache-Control': 'no-cache',
+        },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      console.error('Nominatim API error:', response.status, response.statusText);
-      return new Response(JSON.stringify({ error: 'Geocoding service unavailable' }), {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' },
+      if (!response.ok) {
+        console.error('Nominatim API HTTP error:', response.status, response.statusText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      data = await response.json();
+      console.log('Nominatim response received successfully');
+      
+    } catch (fetchError: any) {
+      console.error('Fetch request failed:', fetchError.message || fetchError);
+      
+      // Provide a fallback response with basic location info
+      const fallbackResponse = {
+        display_name: `Location: ${lat}, ${longitude}`,
+        lat: lat,
+        lon: longitude,
+        place_id: 0,
+        licence: 'Fallback response due to network error',
+        osm_type: 'fallback',
+        osm_id: 0,
+        class: 'place',
+        type: 'coordinate',
+        importance: 0,
+        addresstype: 'coordinate',
+        address: {
+          coordinates: `${lat}, ${longitude}`,
+          country: 'Unknown',
+        },
+        error: 'Network error - showing coordinates only'
+      };
+      
+      return new Response(JSON.stringify(fallbackResponse), {
+        status: 200, // Return 200 with fallback data instead of error
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'X-Fallback': 'true',
+        },
       });
     }
-
-    const data = await response.json();
-    console.log('Nominatim response:', data);
 
     // Return the data with proper CORS headers
     return new Response(JSON.stringify(data), {
