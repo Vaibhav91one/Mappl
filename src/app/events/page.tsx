@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
+import { useRouter } from 'next/navigation';
 import { listEvents, createEvent as apiCreateEvent, updateEvent, joinEvent } from '@/lib/api/events';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,6 +52,7 @@ type Suggestion = { label: string; lat: number; lng: number };
 
 function EventsPageContent() {
   const { user } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -112,11 +114,19 @@ function EventsPageContent() {
   const [chatOpen, setChatOpen] = useState(false);
 
   function onMapClick(lat: number, lng: number) {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
     setPendingLatLng({ lat, lng });
     setModalOpen(true);
   }
 
   async function createEvent() {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
     if (!pendingLatLng || !form.title.trim()) return;
     let isoDate: string | undefined = undefined;
     if (when) {
@@ -351,20 +361,30 @@ function EventsPageContent() {
           <HoverCardTrigger asChild>
             <span>
               <IconTransitionButton
-                onClick={() => setModalOpen(true)}
+                onClick={() => {
+                  if (!user) {
+                    router.push('/auth');
+                    return;
+                  }
+                  setModalOpen(true);
+                }}
                 defaultIcon={Circle}
                 hoverIcon={Plus}
                 variant="primary"
                 size="sm"
                 disabled={!pendingLatLng}
               >
-                New Event
+                {user ? 'New Event' : 'Sign in to Create'}
               </IconTransitionButton>
             </span>
           </HoverCardTrigger>
           {!pendingLatLng && (
             <HoverCardContent className="w-64">
-              Click on the map to select a location. The New Event button will enable once a location is chosen.
+              {!user ? (
+                <p>Please sign in to create events. Click the button to go to the auth page.</p>
+              ) : (
+                <p>Click on the map to select a location. The New Event button will enable once a location is chosen.</p>
+              )}
             </HoverCardContent>
           )}
         </HoverCard>
@@ -465,15 +485,36 @@ function EventsPageContent() {
             </DialogDescription>
 
             <div className="space-y-1">
-              <Label htmlFor="title" className="py-2">Title</Label>
-              <Input id="title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+              <Label htmlFor="title" className="py-2">Title *</Label>
+              <Input 
+                id="title" 
+                value={form.title} 
+                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} 
+                placeholder="Enter event title"
+                maxLength={100}
+                required
+              />
+              <div className="flex justify-end">
+                <span className="text-xs text-gray-500">{form.title.length}/100</span>
+              </div>
             </div>
             <div className="space-y-1">
               <Label htmlFor="desc" className="py-2">Description</Label>
-              <Textarea id="desc" rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+              <Textarea 
+                id="desc" 
+                rows={3} 
+                value={form.description} 
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} 
+                placeholder="Enter event description"
+                maxLength={500}
+                className="resize-none"
+              />
+              <div className="flex justify-end">
+                <span className="text-xs text-gray-500">{form.description.length}/500</span>
+              </div>
             </div>
             <div className="space-y-3">
-              <Label htmlFor="genre" className="py-2">Genre</Label>
+              <Label htmlFor="genre" className="py-2">Genre *</Label>
               
               {/* Custom genre input */}
               <div className="space-y-2">
@@ -483,6 +524,7 @@ function EventsPageContent() {
                   value={genreInput}
                   onChange={(e) => setGenreInput(e.target.value)}
                   onKeyPress={handleGenreInputKeyPress}
+                  maxLength={50}
                 />
               </div>
 
@@ -525,9 +567,14 @@ function EventsPageContent() {
                   </div>
                 </div>
               )}
+              
+              {/* Required field indicator */}
+              {form.genre.length === 0 && (
+                <p className="text-xs text-red-500">Please select at least one genre</p>
+              )}
             </div>
             <div className="space-y-1">
-              <Label className="py-2" htmlFor="date-picker">Date & Time</Label>
+              <Label className="py-2" htmlFor="date-picker">Date & Time *</Label>
               <div className="flex gap-4 items-end">
                 <div className="flex flex-col gap-2">
                   <Popover open={dateOpen} onOpenChange={setDateOpen}>
@@ -559,33 +606,50 @@ function EventsPageContent() {
                     type="time"
                     id="time-picker"
                     step="1"
-                    defaultValue="10:30:00"
+                    value={time}
                     onChange={(e) => setTime(e.target.value)}
                     className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none h-10 w-32"
+                    required
                   />
                 </div>
               </div>
+              {!when && (
+                <p className="text-xs text-red-500">Please select a date for the event</p>
+              )}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="file" className="py-2">Image</Label>
-              <Input id="file" type="file" accept="image/*" onChange={(e) => {
-                const f = e.target.files?.[0] || null;
-                setImageFile(f);
-                setImagePreview(f ? URL.createObjectURL(f) : undefined);
-              }} />
+              <Label htmlFor="file" className="py-2">Image *</Label>
+              <Input 
+                id="file" 
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  setImageFile(f);
+                  setImagePreview(f ? URL.createObjectURL(f) : undefined);
+                }} 
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
               {uploading && (
                 <div className="flex items-center justify-center py-2">
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900"></div>
                 </div>
               )}
-              {imagePreview && <img src={imagePreview} alt="preview" className="h-24 rounded object-cover" />}
+              {imagePreview && (
+                <div className="mt-2">
+                  <img src={imagePreview} alt="preview" className="h-24 rounded object-cover" />
+                </div>
+              )}
+              {!imageFile && (
+                <p className="text-xs text-red-500">Please select an image for the event</p>
+              )}
             </div>
           </div>
         )}
         onPrimary={createEvent}
         primaryLabel="Create"
         secondaryLabel="Cancel"
-        disablePrimary={!pendingLatLng || !form.title.trim()}
+        disablePrimary={!pendingLatLng || !form.title.trim() || !when || form.genre.length === 0 || !imageFile}
       />
 
       <EventDialog
