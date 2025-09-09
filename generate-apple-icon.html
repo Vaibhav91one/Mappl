@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Apple Touch Icon</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .icon-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin: 10px;
+        }
+        button {
+            background: #141416;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generate Apple Touch Icon for Mappl</h1>
+    <p>This tool generates a 180x180 PNG icon for iOS devices.</p>
+    
+    <div class="icon-container">
+        <h3>Apple Touch Icon (180x180)</h3>
+        <canvas id="apple-icon" width="180" height="180"></canvas>
+        <br>
+        <button onclick="generateAppleIcon()">Generate Icon</button>
+        <button onclick="downloadAppleIcon()">Download PNG</button>
+    </div>
+
+    <div class="icon-container">
+        <h3>Instructions</h3>
+        <ol>
+            <li>Click "Generate Icon" to create the 180x180 icon</li>
+            <li>Click "Download PNG" to save the file</li>
+            <li>Save the file as "apple-touch-icon.png"</li>
+            <li>Place it in the /public directory of your project</li>
+        </ol>
+    </div>
+
+    <script>
+        function generateAppleIcon() {
+            const canvas = document.getElementById('apple-icon');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, 180, 180);
+            
+            // Set background (white for iOS)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 180, 180);
+            
+            // Scale and center the SVG path
+            const scale = 180 / 960; // SVG viewBox is 960x960
+            const offsetY = 960 * 0.1; // Adjust for better centering
+            
+            ctx.save();
+            ctx.scale(scale, scale);
+            ctx.translate(0, offsetY);
+            ctx.fillStyle = '#141416';
+            
+            // Draw the SVG path
+            const path = new Path2D('M360-80v-529q-91-24-145.5-100.5T160-880h80q0 83 53.5 141.5T430-680h100q30 0 56 11t47 32l181 181-56 56-158-158v478h-80v-240h-80v240h-80Zm120-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z');
+            ctx.fill(path);
+            
+            ctx.restore();
+        }
+
+        function downloadAppleIcon() {
+            const canvas = document.getElementById('apple-icon');
+            const link = document.createElement('a');
+            link.download = 'apple-touch-icon.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Auto-generate on load
+        window.onload = function() {
+            setTimeout(generateAppleIcon, 100);
+        };
+    </script>
+</body>
+</html>
