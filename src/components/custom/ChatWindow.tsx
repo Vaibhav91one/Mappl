@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { listMessages, sendMessage, Message } from '@/lib/api/messages';
-import { client, account } from '@/lib/appwrite';
+import { client } from '@/lib/appwrite';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import MessageCard from '@/components/custom/MessageCard';

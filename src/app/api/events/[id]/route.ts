@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { Client, Databases, Query, Storage } from 'node-appwrite';
+import { authenticateRequest, createUnauthorizedResponse, createForbiddenResponse } from '@/lib/auth-middleware';
 
 // Initialize client with proper environment variable validation
 const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
@@ -43,6 +44,27 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   if (!DB_ID || !EVENTS_COL) return new Response('Database not configured', { status: 500 });
+  
+  // Authenticate the user
+  let user;
+  try {
+    user = await authenticateRequest(req);
+  } catch (error: any) {
+    return createUnauthorizedResponse(error.message);
+  }
+  
+  const { id } = await ctx.params;
+  
+  // Check if user owns this event
+  try {
+    const existingEvent: any = await databases.getDocument(DB_ID, EVENTS_COL, id);
+    if (existingEvent.creatorId !== user.$id) {
+      return createForbiddenResponse('You can only edit events you created');
+    }
+  } catch (error) {
+    return new Response('Event not found', { status: 404 });
+  }
+  
   const body = await req.json();
   const updates: any = { ...body };
   if (body.location && typeof body.location.lat === 'number' && typeof body.location.lng === 'number') {
@@ -50,14 +72,17 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     updates.location_lng = body.location.lng;
     delete updates.location;
   }
-  // If imageUrl is being cleared, remove previous file from storage
+  // Handle image updates: clear existing image or replace with new one
   let shouldDeleteFile = false;
   try {
+    // Get existing event to check current imageUrl
+    const existing: any = await databases.getDocument(DB_ID!, EVENTS_COL!, id);
+    const existingImageUrl = existing?.imageUrl;
+    
+    // If imageUrl is being cleared (set to empty string)
     if (body.imageUrl === '') {
-      const { id } = await ctx.params;
-      const existing: any = await databases.getDocument(DB_ID!, EVENTS_COL!, id);
-      if (existing?.imageUrl) {
-        const u = new URL(existing.imageUrl);
+      if (existingImageUrl) {
+        const u = new URL(existingImageUrl);
         const parts = u.pathname.split('/');
         const fileIdx = parts.findIndex((p) => p === 'files');
         const fileId = fileIdx >= 0 ? parts[fileIdx + 1] : undefined;
@@ -68,11 +93,24 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
           shouldDeleteFile = true;
         }
       }
-
+    }
+    // If imageUrl is being replaced with a new one
+    else if (body.imageUrl && body.imageUrl !== existingImageUrl) {
+      if (existingImageUrl) {
+        const u = new URL(existingImageUrl);
+        const parts = u.pathname.split('/');
+        const fileIdx = parts.findIndex((p) => p === 'files');
+        const fileId = fileIdx >= 0 ? parts[fileIdx + 1] : undefined;
+        const bucketIdx = parts.findIndex((p) => p === 'buckets');
+        const bucketId = bucketIdx >= 0 ? parts[bucketIdx + 1] : process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID!;
+        if (fileId && bucketId) {
+          await storage.deleteFile(bucketId, fileId);
+          shouldDeleteFile = true;
+        }
+      }
     }
   } catch {}
   try {
-    const { id } = await ctx.params;
     const d: any = await databases.updateDocument(DB_ID, EVENTS_COL, id, updates);
     // if joiners updated, reflect in user's joinedEventIds
     try {
@@ -108,10 +146,30 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
   }
 }
 
-export async function DELETE(_: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   if (!DB_ID || !EVENTS_COL) return new Response('Database not configured', { status: 500 });
+  
+  // Authenticate the user
+  let user;
   try {
-    const { id } = await ctx.params;
+    user = await authenticateRequest(req);
+  } catch (error: any) {
+    return createUnauthorizedResponse(error.message);
+  }
+  
+  const { id } = await ctx.params;
+  
+  // Check if user owns this event
+  try {
+    const existingEvent: any = await databases.getDocument(DB_ID, EVENTS_COL, id);
+    if (existingEvent.creatorId !== user.$id) {
+      return createForbiddenResponse('You can only delete events you created');
+    }
+  } catch (error) {
+    return new Response('Event not found', { status: 404 });
+  }
+  
+  try {
     // Fetch doc to remove associated image and get event code
     let eventCode: string | undefined;
     try {

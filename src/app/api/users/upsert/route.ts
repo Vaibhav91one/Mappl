@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { Client, Databases, Query, ID } from 'node-appwrite';
+import { authenticateRequest, createUnauthorizedResponse, createForbiddenResponse } from '@/lib/auth-middleware';
 
 // Initialize client with proper environment variable validation
 const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
@@ -16,10 +17,22 @@ const DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
 const USERS_COL = process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID!;
 
 export async function POST(req: NextRequest) {
+  // Authenticate the user
+  let user;
+  try {
+    user = await authenticateRequest(req);
+  } catch (error: any) {
+    return createUnauthorizedResponse(error.message);
+  }
+
   try {
     const body = await req.json();
     const { userId, name, email, avatarUrl, raw } = body as { userId: string; name?: string; email?: string; avatarUrl?: string; raw?: any };
-    if (!userId) return new Response('Missing userId', { status: 400 });
+    
+    // Check if the authenticated user is trying to update their own profile
+    if (userId !== user.$id) {
+      return createForbiddenResponse('You can only update your own profile');
+    }
 
     const found: any = await databases.listDocuments(DB_ID, USERS_COL, [Query.equal('userId', userId)]);
     if (found.documents && found.documents.length > 0) {

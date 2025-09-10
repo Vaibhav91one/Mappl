@@ -14,7 +14,7 @@ export default function NavBar() {
   const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
-    if (!user) { 
+    if (!user || !user.$id) { 
       setAvatarUrl(null); 
       setShowLoader(false);
       return; 
@@ -25,7 +25,9 @@ export default function NavBar() {
       setShowLoader(false);
     }, 2000);
     
-    fetch(`/api/users/${user.$id}`)
+    fetch(`/api/users/${user.$id}`, {
+      credentials: 'include',
+    })
       .then((r) => r.ok ? r.json() : null)
       .then((doc) => {
         setAvatarUrl(doc?.avatarUrl || null);

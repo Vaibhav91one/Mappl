@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { Client, Databases, Query } from 'node-appwrite';
+import { authenticateRequest, createUnauthorizedResponse } from '@/lib/auth-middleware';
 
 // Initialize client with proper environment variable validation
 const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
@@ -22,14 +23,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return new Response('Database not configured', { status: 500 });
   }
 
+  // Authenticate the user
+  let user;
+  try {
+    user = await authenticateRequest(req);
+  } catch (error: any) {
+    return createUnauthorizedResponse(error.message);
+  }
+
   try {
     const { id } = await params;
-    const body = await req.json();
-    const { userId } = body;
-
-    if (!userId) {
-      return new Response('User ID required', { status: 400 });
-    }
+    const userId = user.$id; // Use authenticated user's ID
 
     // Get the event
     const event: any = await databases.getDocument(DB_ID, EVENTS_COL, id);

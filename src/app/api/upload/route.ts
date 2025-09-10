@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { Client, Storage, ID } from 'node-appwrite';
 import { InputFile } from 'node-appwrite/file';
+import { authenticateRequest, createUnauthorizedResponse } from '@/lib/auth-middleware';
 
 export const runtime = 'nodejs';
 
@@ -19,10 +20,19 @@ const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID as string | undefin
 
 export async function POST(req: NextRequest) {
   if (!BUCKET_ID) return new Response('Bucket not configured', { status: 500 });
+  
+  // Authenticate the user
+  let user;
+  try {
+    user = await authenticateRequest(req);
+  } catch (error: any) {
+    return createUnauthorizedResponse(error.message);
+  }
+  
   try {
     const form = await req.formData();
     const file = form.get('file') as unknown as File | null;
-    const creatorId = (form.get('creatorId') as string) || 'guest';
+    const creatorId = user.$id; // Use authenticated user's ID
     if (!file) return new Response('No file', { status: 400 });
     const arrayBuffer = await (file as any).arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);

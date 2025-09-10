@@ -237,29 +237,15 @@ export default function DashboardPage() {
           let imageUrl = edit.imageUrl || '';
           try {
             // Helper function to delete old image
-            const deleteOldImage = async () => {
-              if (edit.imageUrl) {
-                try {
-                  const oldUrl = new URL(edit.imageUrl);
-                  const parts = oldUrl.pathname.split('/');
-                  const fileIdx = parts.findIndex((p) => p === 'files');
-                  const fileId = fileIdx >= 0 ? parts[fileIdx + 1] : undefined;
-                  if (fileId && BUCKET_ID) {
-                    await storage.deleteFile(BUCKET_ID, fileId);
-                  }
-                } catch (deleteError) {
-                  // Handle delete error silently
-                }
-              }
-            };
+            // Note: Storage deletion is handled server-side in the API route
+            // No need to delete files from client-side
 
             if (removeImage) {
               imageUrl = '';
-              await deleteOldImage();
+              // Storage deletion is handled server-side
             } else if (f && BUCKET_ID) {
-              // Delete old image before uploading new one
-              await deleteOldImage();
               // Upload new image using the same method as events page
+              // Old image deletion is handled server-side
               const fd = new FormData();
               fd.append('file', f);
               const r = await fetch('/api/upload', { method: 'POST', body: fd });
