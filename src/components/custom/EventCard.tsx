@@ -1,11 +1,11 @@
 "use client";
 
-import IconTransitionButton from '@/components/ui/IconTransitionButton';
 import CircularLoader from '@/components/ui/CircularLoader';
-import ShareEvent from '@/components/custom/ShareEvent';
 import GenrePill from '@/components/ui/GenrePill';
-import { Circle, MessageCircle, Eye, MapPin } from 'lucide-react';
+import { Share2, MessageCircle, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import ShareEvent from './ShareEvent';
 
 interface EventCardProps {
   event: {
@@ -118,6 +118,32 @@ export default function EventCard({
   const [resolvedLocation, setResolvedLocation] = useState<string>('');
   const [isResolvingLocation, setIsResolvingLocation] = useState(false);
 
+  // Share functionality
+  const handleShare = async () => {
+    const eventCode = event.code || event.id;
+    const eventUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/events${eventCode ? `?event=${eventCode}` : ''}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: event.title,
+          text: `Check out this event: ${event.title}${event.date ? ` on ${new Date(event.date).toLocaleDateString()}` : ''}`,
+          url: eventUrl,
+        });
+      } catch (err) {
+        // User cancelled or error occurred
+      }
+    } else {
+      // Fallback to copying link
+      try {
+        await navigator.clipboard.writeText(eventUrl);
+        toast.success('Event link copied to clipboard!');
+      } catch (err) {
+        toast.error('Failed to copy link');
+      }
+    }
+  };
+
   // Resolve location to readable place name
   useEffect(() => {
     const resolveLocation = async () => {
@@ -190,7 +216,21 @@ export default function EventCard({
         </div>
       )}
       
-      <div className="p-5 min-h-[250px] flex flex-col justify-between rounded-t-lg border border-1">
+      <div className="p-5 min-h-[250px] flex flex-col justify-between ">
+         {/* Genre Tags */}
+         {event.genre && event.genre.length > 0 && (
+            <div className="flex flex-wrap gap-2 ">
+              {event.genre.slice(0, 2).map((g, index) => (
+                <GenrePill key={index} genre={g} />
+              ))}
+              {event.genre.length > 3 && (
+                <GenrePill 
+                  genre={`+${event.genre.length - 2}`} 
+                  className="bg-black"
+                />
+              )}
+            </div>
+          )}
         <div>
           {/* Date and Time - formatted as "Fri, 26 Sep, 6:00 PM" */}
           {formatDateTime(event.date, event.time) && (
@@ -217,39 +257,23 @@ export default function EventCard({
             </div>
           )}
 
-          {/* Genre Tags */}
-          {event.genre && event.genre.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-6">
-              {event.genre.slice(0, 3).map((g, index) => (
-                <GenrePill key={index} genre={g} />
-              ))}
-              {event.genre.length > 3 && (
-                <GenrePill 
-                  genre={`+${event.genre.length - 3} more`} 
-                  className="bg-gray-100 text-gray-600"
-                />
-              )}
-            </div>
-          )}
+         
         </div>
         
         {/* Action buttons - positioned at bottom right */}
-        <div className="flex justify-center gap-2">
+        <div className="flex justify-between gap-2">
           <ShareEvent
             event={event}
             variant="outline"
             size="sm"
             className="text-xs"
           />
-          <IconTransitionButton
-            size="sm"
-            variant="primary"
-            defaultIcon={Circle}
-            hoverIcon={MessageCircle}
+          <button
             onClick={(evn) => { evn?.stopPropagation(); onChat(event); }}
+            className="rounded-full px-6 py-2 text-black hover:bg-blue-200 transition-colors duration-200"
           >
-            Chat
-          </IconTransitionButton>
+            <MessageCircle size={16} />
+          </button>
         </div>
       </div>
     </div>

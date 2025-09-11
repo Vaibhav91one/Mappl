@@ -335,9 +335,15 @@ export default function EventDialog({
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">Genre:</span>
                     <div className="flex flex-wrap gap-2">
-                      {eventData.genre.map((g, index) => (
+                      {eventData.genre.slice(0, 2).map((g, index) => (
                         <GenrePill key={index} genre={g} />
                       ))}
+                      {eventData.genre.length > 2 && (
+                        <GenrePill 
+                          genre={`+${eventData.genre.length - 2}`} 
+                          className="bg-gray-100 text-gray-600"
+                        />
+                      )}
                     </div>
                   </div>
                 )}
@@ -373,7 +379,7 @@ export default function EventDialog({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-start items-center gap-2">
+              <div className="flex justify-start flex-col lg:flex-row items-start gap-2">
                 <IconTransitionButton
                   onClick={() => {
                     if (!isAuthenticated) {

@@ -19,7 +19,7 @@ export default function GenrePill({
   removable = false,
   size = 'sm'
 }: GenrePillProps) {
-  const sizeClasses = size === 'sm' ? 'px-3 py-3 text-xs' : 'px-4 py-3 text-sm';
+  const sizeClasses = size === 'sm' ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm ';
   
   return (
     <span 
@@ -36,7 +36,7 @@ export default function GenrePill({
         <button
           type="button"
           onClick={() => onRemove(genre)}
-          className="ml-1 hover:text-blue-600 transition-colors duration-200"
+          className="ml-1 hover:text-blue-300 font-semibold transition-colors duration-200"
         >
           ×
         </button>

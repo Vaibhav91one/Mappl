@@ -64,7 +64,7 @@ export const CursorProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
       <div
         ref={cursorRef}
-        className="fixed top-0 left-0 h-[20px] w-[20px] bg-gray-200 rounded-full z-50 pointer-events-none mix-blend-difference shadow"
+        className="fixed top-1 left-1 h-[10px] w-[10px] bg-gray-400/0 lg:bg-gray-400/40 rounded-full z-50 pointer-events-none mix-blend-difference shadow "
       />
     </CursorContext.Provider>
   );

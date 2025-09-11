@@ -77,9 +77,9 @@ export default function ShareEvent({
       size={size === 'md' ? 'lg' : size === 'default' ? 'lg' : size === 'icon' ? 'sm' : size}
       defaultIcon={Share2}
       hoverIcon={Share2}
-      className={className}
+      className={`${className}`}
     >
-      Share Event
+      {children || 'Share Event'}
     </IconTransitionButton>
   );
 
