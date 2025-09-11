@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     }
     
     // Create OAuth2 token with proper URLs
-    const baseUrl = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+    const baseUrl = process.env.NEXT_PUBLIC_APPWRITE_SITE_URL || `${req.nextUrl.protocol}//${req.nextUrl.host}`;
     const successUrl = `${baseUrl}/api/auth/oauth/success?next=${encodeURIComponent(next)}`;
     const failureUrl = `${baseUrl}/auth?error=oauth_failed`;
     

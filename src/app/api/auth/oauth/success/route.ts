@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
       };
       
       // Make internal API call to upsert user
-      const baseUrl = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+      const baseUrl = process.env.NEXT_PUBLIC_APPWRITE_SITE_URL || `${req.nextUrl.protocol}//${req.nextUrl.host}`;
       const upsertResponse = await fetch(`${baseUrl}/api/users/upsert`, {
         method: 'POST',
         headers: { 
@@ -105,9 +105,11 @@ export async function GET(req: NextRequest) {
     }
     
     // Redirect to the next URL
-    return Response.redirect(`${req.nextUrl.origin}${next}`);
+    const redirectOrigin = process.env.NEXT_PUBLIC_APPWRITE_SITE_URL || req.nextUrl.origin;
+    return Response.redirect(`${redirectOrigin}${next}`);
     
   } catch (error: any) {
-    return Response.redirect(`${req.nextUrl.origin}/auth?error=session_failed`);
+    const errorOrigin = process.env.NEXT_PUBLIC_APPWRITE_SITE_URL || req.nextUrl.origin;
+    return Response.redirect(`${errorOrigin}/auth?error=session_failed`);
   }
 }
