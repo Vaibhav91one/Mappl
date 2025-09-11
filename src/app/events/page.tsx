@@ -190,6 +190,23 @@ function EventsPageContent() {
     setMounted(true);
   }, []);
 
+  // Listen for location updates from LocationStatus component
+  useEffect(() => {
+    const handleLocationUpdate = (event: CustomEvent) => {
+      const { lat, lng } = event.detail;
+      const loc = { lat, lng };
+      setUserLoc(loc);
+      setCenter(loc);
+      setLocationPermission('granted');
+    };
+
+    window.addEventListener('locationUpdated', handleLocationUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('locationUpdated', handleLocationUpdate as EventListener);
+    };
+  }, []);
+
   useEffect(() => {
     // Check geolocation support on client side only
     const geolocationSupported = typeof navigator !== 'undefined' && 'geolocation' in navigator;
@@ -307,46 +324,6 @@ function EventsPageContent() {
         </FlipText>
         
         <div className="flex items-center gap-2">
-        <IconTransitionButton
-          onClick={() => {
-            if (userLoc) {
-              // If we already have location, just center the map
-              setCenter(userLoc);
-            } else if (hasGeolocation && locationPermission !== 'denied') {
-              // If we don't have location but geolocation is supported and not denied, request it
-              setIsGettingLocation(true);
-              navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                  const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                  setUserLoc(loc);
-                  setCenter(loc);
-                  setLocationPermission('granted');
-                  setIsGettingLocation(false);
-                },
-                (error) => {
-                  if (error.code === error.PERMISSION_DENIED) {
-                    setLocationPermission('denied');
-                  }
-                  setIsGettingLocation(false);
-                },
-                { enableHighAccuracy: true, maximumAge: 60000, timeout: 5000 }
-              );
-            }
-          }}
-          defaultIcon={Circle}
-          hoverIcon={MapPin}
-          variant="secondary"
-          size="sm"
-          disabled={!hasGeolocation || locationPermission === 'denied' || isGettingLocation}
-        >
-          {(() => {
-            if (isGettingLocation) return 'Using location...';
-            if (locationPermission === 'denied') return 'Location denied';
-            if (userLoc) return 'Using Location';
-            return 'Use my location';
-          })()}
-        </IconTransitionButton>
-        
         <IconTransitionButton
           onClick={() => setOpen(true)}
           defaultIcon={Circle}

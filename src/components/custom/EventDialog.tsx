@@ -95,6 +95,25 @@ export default function EventDialog({
 
   const isEditable = mode === 'create' || mode === 'edit';
 
+  // Function to open location in maps
+  const openLocationInMaps = (lat: number, lng: number, placeName?: string | null) => {
+    // Try to detect the user's device and open appropriate map app
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Use place name if available, otherwise fall back to coordinates
+    const searchQuery = placeName ? encodeURIComponent(placeName) : `${lat},${lng}`;
+    
+    if (isMobile) {
+      // For mobile devices, try to open in native map app
+      const mapsUrl = `https://maps.google.com/maps?q=${searchQuery}`;
+      window.open(mapsUrl, '_blank');
+    } else {
+      // For desktop, open Google Maps in new tab
+      const mapsUrl = `https://www.google.com/maps?q=${searchQuery}`;
+      window.open(mapsUrl, '_blank');
+    }
+  };
+
   // Premade genre options
   const premadeGenres = [
     'Music', 'Sports', 'Food', 'Art', 'Technology', 'Business', 'Education', 'Health',
@@ -205,7 +224,7 @@ export default function EventDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={(mode === 'create' ? 'z-[10000] ' : '') + (mode === 'join' ? 'max-h-[90vh] w-[95vw] sm:max-w-4xl overflow-hidden' : 'max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-hidden overflow-y-auto')}>
+      <DialogContent className={(mode === 'create' ? 'z-[10000] ' : '') + (mode === 'join' ? 'max-h-[90vh] w-[80vw] sm:max-w-4xl overflow-y-auto sm:overflow-hidden overflow-x-hidden' : 'max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto sm:overflow-y-visible overflow-x-hidden')}>
         <DialogHeader>
           {mode === 'join' ? (
             <VisuallyHidden>
@@ -227,71 +246,83 @@ export default function EventDialog({
 
         {!content && mode === 'view' && (
           <div className="space-y-3">
+            {/* Image - Full width on all screens */}
             {eventData?.imageUrl && (
               <img src={eventData.imageUrl} alt={eventData.title || 'event'} className="w-full h-40 object-cover rounded" />
             )}
-            {eventData?.description && (
-              <div className="text-sm text-gray-700">{eventData.description}</div>
-            )}
-            {eventData?.date && (
-              <div className="text-xs">When: {new Date(eventData.date).toLocaleString()}</div>
-            )}
-            {(eventData?.location || location) && (
-              <div className="text-xs">
-                <div className="flex items-center gap-1">
-                  <MapPin size={12} />
-                  <div className="flex items-center gap-2">
-                    {placeResolving && <CircularLoader size="sm" />}
-                    <span>Place: {placeResolving ? 'Resolving…' : (place || 'Unknown place')}</span>
+            
+            {/* Event Information */}
+            <div className="space-y-3">
+              {eventData?.description && (
+                <div className="text-sm text-gray-700">{eventData.description}</div>
+              )}
+              {eventData?.date && (
+                <div className="text-xs">When: {new Date(eventData.date).toLocaleString()}</div>
+              )}
+              {(eventData?.location || location) && (
+                <div className="text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
+                      {placeResolving && <CircularLoader size="sm" />}
+                      <button
+                        onClick={() => {
+                          const loc = eventData?.location || location;
+                          if (loc) openLocationInMaps(loc.lat, loc.lng, place);
+                        }}
+                        className="text-black hover:underline cursor-pointer transition-colors text-left line-clamp-1"
+                        disabled={placeResolving}
+                      >
+                        Place: {placeResolving ? 'Resolving…' : (place || 'Unknown place')}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-            {eventData?.code && (
-              <div className="text-xs">Code: {eventData.code}</div>
-            )}
-            {typeof eventData?.joiners?.length === 'number' && (
-              <div className="text-xs">People joining: {eventData.joiners?.length ?? 0}</div>
-            )}
-            
-            {/* Share Button for View Mode */}
-            {eventData && (
-              <div className="pt-3">
-                <ShareEvent
-                  event={eventData}
-                  variant="outline"
-                  size="sm"
-                />
-              </div>
-            )}
+              )}
+              {eventData?.code && (
+                <div className="text-xs">Code: {eventData.code}</div>
+              )}
+              {typeof eventData?.joiners?.length === 'number' && (
+                <div className="text-xs">People joining: {eventData.joiners?.length ?? 0}</div>
+              )}
+              
+              {/* Share Button for View Mode */}
+              {eventData && (
+                <div className="pt-3">
+                  <ShareEvent
+                    event={eventData}
+                    variant="outline"
+                    size="sm"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {!content && mode === 'join' && (
-          <div className="flex h-[600px]">
-            {/* Left side - Event Image/Poster */}
-            <div className="flex-1 relative">
+          <div className="flex flex-col lg:flex-row h-auto lg:h-[600px]">
+            {/* Event Image/Poster - Top on mobile, left on desktop */}
+            <div className="w-full lg:flex-1 relative h-64 lg:h-full">
               {eventData?.imageUrl ? (
                 <img 
                   src={eventData.imageUrl} 
                   alt={eventData.title || 'event'} 
-                  className="w-full h-full object-cover rounded-xl border border-1" 
+                  className="w-full h-full object-cover rounded-t-xl lg:rounded-l-xl lg:rounded-t-none border border-1" 
                 />
               ) : (
-                <div className="w-full h-full bg-gray-200 rounded-l-lg flex items-center justify-center">
+                <div className="w-full h-full bg-gray-200 rounded-t-xl lg:rounded-l-xl lg:rounded-t-none flex items-center justify-center">
                   <span className="text-gray-500">No image available</span>
                 </div>
               )}
             </div>
 
-            {/* Right side - Event Details */}
-            <div className="flex-1 p-6 bg-white rounded-r-lg flex flex-col justify-between">
+            {/* Event Details - Bottom on mobile, right on desktop */}
+            <div className="w-full lg:flex-1 p-6 bg-white rounded-b-xl lg:rounded-r-xl lg:rounded-b-none flex flex-col justify-between">
               <div className="space-y-4">
                 {/* Event Title */}
                 <h2 className="text-2xl font-bold text-black">
                   {eventData?.title || 'Event'}
                 </h2>
-
 
                 {/* Date & Time */}
                 {eventData?.date && (
@@ -320,12 +351,18 @@ export default function EventDialog({
                 {/* Location */}
                 {(eventData?.location || location) && (
                   <div className="flex items-center gap-2">
-                  
                     <div className="flex items-center gap-2">
                       {placeResolving && <CircularLoader size="sm" />}
-                      <span className="text-sm text-gray-600">
+                      <button
+                        onClick={() => {
+                          const loc = eventData?.location || location;
+                          if (loc) openLocationInMaps(loc.lat, loc.lng, place);
+                        }}
+                        className="text-sm text-black hover:underline cursor-pointer transition-colors text-left line-clamp-1"
+                        disabled={placeResolving}
+                      >
                         {placeResolving ? 'Resolving location...' : (place || 'Unknown location')}
-                      </span>
+                      </button>
                     </div>
                   </div>
                 )}
@@ -352,9 +389,11 @@ export default function EventDialog({
                 {eventData?.description && (
                   <div className="mt-6">
                     <h3 className="text-lg font-semibold text-black mb-2">About the Event</h3>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {eventData.description}
-                    </p>
+                    <div className="max-h-32 overflow-y-auto">
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {eventData.description}
+                      </p>
+                    </div>
                   </div>
                 )}
 
@@ -379,7 +418,7 @@ export default function EventDialog({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-start flex-col lg:flex-row items-start gap-2">
+              <div className="flex justify-start flex-col lg:flex-row items-start gap-2 mt-6">
                 <IconTransitionButton
                   onClick={() => {
                     if (!isAuthenticated) {

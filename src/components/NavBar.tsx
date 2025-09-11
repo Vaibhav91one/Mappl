@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { FlipText } from '@/components/animation';
+import LocationStatus from '@/components/custom/LocationStatus';
 
 export default function NavBar() {
   const { user, signOut, loading } = useAuth();
@@ -14,17 +15,17 @@ export default function NavBar() {
   const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
-    if (!user || !user.$id) { 
-      setAvatarUrl(null); 
+    if (!user || !user.$id) {
+      setAvatarUrl(null);
       setShowLoader(false);
-      return; 
+      return;
     }
-    
+
     // Show loader for at least 2 seconds
     const loaderTimeout = setTimeout(() => {
       setShowLoader(false);
     }, 2000);
-    
+
     fetch(`/api/users/${user.$id}`, {
       credentials: 'include',
     })
@@ -39,37 +40,40 @@ export default function NavBar() {
         // Hide loader after error (or after 2 seconds, whichever is longer)
         setTimeout(() => setShowLoader(false), 100);
       });
-      
+
     return () => clearTimeout(loaderTimeout);
   }, [user]);
 
   return (
-    <nav className="max-w-6xl mx-auto flex items-center justify-between p-4">
-      <div className="flex items-center gap-2">
-        <Image src="/logos/mappl_logo.svg" alt="Mappl" width={32} height={32} />
-        <FlipText 
-          href="/" 
-          className="font-semibold text-md cursor-pointer"
-          as="a"
-          duration={0.5}
-          stagger={0.02}
-        >
-          Mappl
-        </FlipText>
-      </div>
+    <nav className="max-w-6xl w-full mx-auto flex items-center justify-between p-4">
       <div className="flex items-center gap-6">
-        <FlipText 
-          href="/events" 
-          className="text-sm font-medium"
+        <div className="flex items-center gap-2">
+          <Image src="/logos/mappl_logo.svg" alt="Mappl" width={32} height={32} />
+          <FlipText
+            href="/"
+            className="font-semibold text-md cursor-pointer"
+            as="a"
+            duration={0.5}
+            stagger={0.02}
+          >
+            Mappl
+          </FlipText>
+        </div>
+        <LocationStatus />
+      </div>
+      <div className="flex items-center gap-6 ">
+        <FlipText
+          href="/events"
+          className="text-sm font-medium hidden lg:flex"
           as="a"
           duration={0.5}
           stagger={0.01}
         >
           Events
         </FlipText>
-        <FlipText 
-          href="/dashboard" 
-          className="text-sm font-medium"
+        <FlipText
+          href="/dashboard"
+          className="text-sm font-medium hidden lg:flex"
           as="a"
           duration={0.5}
           stagger={0.01}
@@ -128,8 +132,8 @@ export default function NavBar() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <FlipText 
-            href="/auth" 
+          <FlipText
+            href="/auth"
             className="text-sm font-medium"
             as="a"
             duration={0.5}
